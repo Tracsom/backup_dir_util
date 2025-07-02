@@ -1,1 +1,2 @@
 # Only standard library is required unless extended later
+# Tkinter and shutil are standard library - No external packages required

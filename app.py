@@ -1,14 +1,12 @@
-# PSEUDOCODE:
-"""
-Import MainWindow from src.gui.main_window
-run MainWindow class (tkinter mainloop)
-"""
-
 from src.gui.main_window import MainWindow
+import sys
 
 def main():
-    app = MainWindow()
-    app.run()
+    try:
+        app = MainWindow()
+        app.run()
+    except Exception as e:
+        print(f"[ERROR] Application failed to launch: {e}", file=sys.stderr)
 
 if __name__ == "__main__":
     main()
