@@ -1,0 +1,7 @@
+__pycashe__/
+*.pyc
+*.pyo
+*.exe
+*.zip
+dist/
+build/
