@@ -13,13 +13,13 @@ class LandingPage(Frame):
             self, 
             text="Launch Backup Manager", 
             width=30, 
-            command=lambda:self.controller.show_frame()
+            command=lambda:self.controller.show_frame("BackupManagerPage")
         ).pack(pady=15)
         Button(
             self, 
             text="Launch Drive Manager", 
             width=30, 
-            command=lambda:self.controller.show_frame()
+            command=lambda:self.controller.show_frame("DriveManagerPage")
         ).pack(pady=10)
         Button(
             self, 
