@@ -1,8 +1,19 @@
-import os
 import subprocess
 from src.utils.logger import setup_logger
 
 logger = setup_logger("backup_app")
+
+def list_mapped_drives():
+    result = subprocess.run(["net","use"], capture_output=True, text=True)
+    output = result.stdout.strip().splitlines()
+    mappings = []
+    for line in output:
+        if ":" in line and "\\" in line:
+            parts = line.split()
+            drive = parts[0]
+            remote = parts[-2] if parts[-1] == "OK" else parts[-1]
+            mappings.append({'drive':drive, 'remote':remote})
+    return mappings
 
 def is_network_path(path):
     return path.replace("/", "\\").startswith("\\\\")

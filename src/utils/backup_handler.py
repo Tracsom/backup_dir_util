@@ -73,4 +73,4 @@ def _build_logger_proxy(log_callback):
         getattr(logger, level)(msg)
         if log_callback:
             log_callback(msg)
-        return log
+    return log

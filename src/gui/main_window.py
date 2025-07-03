@@ -1,6 +1,7 @@
 from src.utils.backup_handler import validate_destination_path, perform_backup
 from src.utils.nas_mapper import is_network_path, map_network_drive
 from src.gui.nas_credential_prompt import NasCredentialPrompt
+from src.gui.drive_manager_window import DriveManagerWindow
 from src.utils.logger import setup_logger
 from tkinter import (
     Tk, 
@@ -52,6 +53,12 @@ class MainWindow(Tk):
             else:
                 self.logger.info(f"Valid destination: {mapped_path}")
                 self.start_btn.config(state="normal")
+
+    def open_drive_manager(self):
+        if not hasattr(self, "_drive_manager") or not self._drive_manger.winfo_exists():
+            self._drive_manager = DriveManagerWindow(self, log_callback=lambda msg: self.logger.info(msg))
+        else:
+            self._drive_manager.lift()
     
     def try_map_network_path(self, path):
         if is_network_path(path) and not validate_destination_path(path):
@@ -72,6 +79,20 @@ class MainWindow(Tk):
                         self.start_btn.config(state="disabled")
                         return path
         return path
+    
+    def validate_inputs(self, *_):
+        src = self.source_path.get().strip()
+        dst = self.dest_path.get().strip()
+        if not (src and dst):
+            self.start_btn.config(state="disabled")
+            return
+        # Try to auto-map network path if needed
+        dst_mapped = self.try_map_network_path(dst)
+        self.dest_path.set(dst_mapped)
+        if validate_destination_path(dst_mapped):
+            self.start_btn.config(state="normal")
+        else:
+            self.start_btn.config(state="disabled")
     
     def start_backup(self):
         src = self.source_path.get()
@@ -100,12 +121,19 @@ class MainWindow(Tk):
         # GUI layout
         # Source
         Label(self, text="Source Directory:").pack(pady=5)
-        Entry(self, textvariable=self.source_path, width=60).pack()
+        src_entry = Entry(self, textvariable=self.source_path, width=60)
+        src_entry.pack()
+        src_entry.bind("<FocusOut>", self.validate_inputs)
+        src_entry.bind("<KeyRelease>", self.validate_inputs)
         Button(self, text="Browse", command=self.browse_source).pack(pady=2)
         # Destination
         Label(self, text="Destination Directory").pack(pady=5)
-        Entry(self, textvariable=self.dest_path, width=60).pack()
+        dst_entry = Entry(self, textvariable=self.dest_path, width=60)
+        dst_entry.pack()
+        dst_entry.bind("<FocusOut>", self.validate_inputs)
+        dst_entry.bind("<KeyRelease>", self.validate_inputs)
         Button(self, text="Browse", command=self.browse_dest).pack(pady=2)
+        Button(self, text="Manage Drives", command=self.open_drive_manager).pack(pady=2)
         # Compression
         Checkbutton(self, text="Compress to ZIP", variable=self.compress).pack(pady=5)
         # Start
