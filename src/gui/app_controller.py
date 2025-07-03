@@ -8,8 +8,8 @@ class AppController(Tk):
     def __init__(self):
         super().__init__()
         self.title("Backup Utility Suite")
-        self.geometry("700x500")
-        self.resizable(False, False)
+        #self.geometry("700x550")
+        #self.resizable(False, False)
         self.logger = setup_logger("backup_app", log_callback=self.gui_log_callback)
         # Page container
         self.container = Frame(self)

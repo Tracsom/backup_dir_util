@@ -1,9 +1,33 @@
+# Bytecode and cache
 __pycashe__/
-*.pyc
+*.py[cod]
 *.pyo
-*.exe
-*.zip
-dist/
+# OS-Specific
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+# IDE/project files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+# Installer/build artifacts
 build/
+dist/
+*.spec
+*.egg-info/
+*.log
+# Env/venv
+.env
 .venv/
-logs/
+venv/
+env/
+pip-selfcheck.json
+# PyInstaller output
+*.exe
+*.dll
+# Local testing output
+tests/__pycashe__/
+backups/
+__test_*.tmp

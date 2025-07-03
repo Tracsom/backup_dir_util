@@ -1,68 +1,51 @@
 # Backup Directory Utility
 
-A lightweight, standalone backup utility for Windows systems (from Windows 95 onward). 
-This app allows users to backup folders to local or networked destinations (including NAS devices), 
-with optional ZIP compression. Built with Python and a Tkinter GUI for maximum compatibility.
+A standalone, GUI-based backup tool for Windows systems (Windows 95 and up). Supports:
+- Full directory backups
+- Compressed ZIP archives
+- Daily archival with timestamp
+- Network drive mapping (UNC/NAS support)
+- Clean GUI with logging and status feedback
 
----
 ## Features
-* GUI-based directory selection
-* Support for NAS destinations with connection validaton
-* Optional .zip compression for backup
-* Progress feedback and logging
-* Minimal dependencies (Windows 95+ compatible)
-* Easy standalone `.exe` build with PyInstaller
----
+- Modular OOP design
+- Tkinter GUI with Backup + Drive manager pages
+- Backup progress and logs
+- Auto-archiving to backups/ folder
+- Optional compression
+- Cross-system portable (Works from NAS)
 
-## Directory Structure
-app/
-|-gui/ # GUI interface components
-|-utils/ # Backup logic and helpers
-|-app.py # Entrypoint
-|-.gitignore
-|-requirements.txt
-|-README.md
-
----
-## Getting started
-### 1. Clone the repo
-bash
-```
-git clone https://github.com/Tracsom/backup_dir_util.git
-cd backup_dir_util
-```
-### 2. Create virtual enviroment (optional but recommended)
-bash
-```
-python -m venv venv
-venv\scripts\activate # or source venv/vin/activate on UNIX
-```
-### 3. Install requirements
-bash
-```
-pip install -r requirements.txt
-```
-### 4. Run the app
-bash
-```
+## Usage
+```bash
 python app.py
 ```
----
-
-## Build Standalone EXE
-User PyInstaller to build for Windows:
-bash
+Or build to .exe using:
+```bash
+pyinstaller app.py --noconsole --windowed --onefile --name="BackupUtility"
 ```
-pyinstaller --onefile app.py
-```
-Output will be in the dist/ folder
 
----
-### LICENSE (MIT License)
-MIT License
+## Requirements
+- Python 3.8+
+- Works best on Windows, supports older systems with zip fallback
 
-Copyright (c) 2025 Jonathan Wong
+## Structure
+app/
+|- app.py   # Entry Point
+|- requirements.txt
+|- README.md
+|- .gitignore
+|- src/
+    |- gui/
+    |   |- app_controller.py
+    |   |- backup_manager_page.py
+    |   |- drive_manager_page.py
+    |   |- nas_credential_prompt.py
+    |   |- landing_page.py
+    |
+    |- utils/
+        |- backup_job.py
+        |- network_drive.py
+        |- logger.py
 
-Permission is hereby granted, free of chage, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction.
+## License
+MIT--free to modify and use.

@@ -1,8 +1,8 @@
 from src.gui.nas_credential_prompt import NasCredentialPrompt
 from src.utils.network_drive import NetworkDrive
 from tkinter import (
-    Frame, Listbox, Button, Scrollbar,
-    END, SINGLE,
+    Frame, LabelFrame, Label, Listbox, Button, Scrollbar, StringVar, Text,
+    END, SINGLE, DISABLED, NORMAL,
     messagebox
 )
 
@@ -10,17 +10,39 @@ class DriveManagerPage(Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
-        # Result list with scrollbar
-        self.drive_list = Listbox(self, selectmode=SINGLE, width=60)
-        self.drive_list.pack(pady=10)
-        scrollbar = Scrollbar(self)
+        self.status = StringVar(value="Ready")
+        Label(
+            self, 
+            text="Drive Manager", 
+            font=("Helvetica", 16, "bold")
+        ).pack(pady=(10, 5))
+        # --- Drive List ---
+        list_frame = LabelFrame(self, text="Mapped Drives", padx=10, pady=5)
+        list_frame.pack(fill="x", padx=10, pady=5)
+        self.drive_list = Listbox(list_frame, selectmode=SINGLE, width=60, height=8)
+        self.drive_list.pack(side="left", fill="both", expand=True)
+        scrollbar = Scrollbar(list_frame, command=self.drive_list.yview)
         scrollbar.pack(side="right", fill="y")
         self.drive_list.config(yscrollcommand=scrollbar.set)
-        scrollbar.config(command=self.drive_list.yview)
-        # Action buttons
-        Button(self, text="Map New Drive", command=self._map_new).pack(pady=2)
-        Button(self, text="Unmap Selected", command=self._unmap_selected).pack(pady=2)
-        Button(self, text="Reconnect Selected", command=self._reconnect_selected).pack(pady=2)
+        # --- Status Message ---
+        self.status_label = Label(self, textvariable=self.status, font=("Helvetica", 10, "italic"))
+        self.status_label.pack(pady=(0, 10))
+        # --- Actions ---
+        action_frame = LabelFrame(self, text="Drive Operations", padx=10, pady=5)
+        action_frame.pack(fill="x", padx=10, pady=5)
+        btn_row = Frame(action_frame)
+        btn_row.pack()
+        Button(btn_row, text="Map New Drive", width=18, command=self._map_new).pack(padx=5)
+        Button(btn_row, text="Unmap Selected", width=18, command=self._unmap_selected).pack(padx=5)
+        Button(btn_row, text="Reconnect Selected", width=18, command=self._reconnect_selected).pack(padx=5)
+        # --- Log Panel ---
+        log_frame = LabelFrame(self, text="Drive Manager Log", padx=10, pady=5)
+        log_frame.pack(fill="both", expand=True, padx=10, pady=5)
+        self.log_text = Text(log_frame, height=10, width=80, state=DISABLED, wrap="word")
+        self.log_text.pack(side="left", fill="both", expand=True)
+        scroll = Scrollbar(log_frame, command=self.log_text.yview)
+        scroll.pack(side="right", fill="y")
+        self.log_text.config(yscrollcommand=scroll.set)
         # Refresh view
         self._refresh_drive_list()
     
@@ -29,6 +51,7 @@ class DriveManagerPage(Frame):
         drives = NetworkDrive.list_mapped()
         for d in drives:
             self.drive_list.insert(END, f"{d['drive']} -> {d['remote']}")
+        self._set_status(f"{len(drives)} drive(s) mapped.", "neutral")
     
     def _map_new(self):
         cred = NasCredentialPrompt(self).result
@@ -37,10 +60,12 @@ class DriveManagerPage(Frame):
             success = drive.map(username=cred.get('user'), password=cred.get('password'))
             if success:
                 self._log(f"Mapped {drive}.")
+                self._set_status(f"Mapped {drive.drive_letter}: -> {drive.unc_path}", "success")
                 messagebox.showinfo("Success", f"Mapped to {drive.drive_letter}:")
                 self._refresh_drive_list()
             else:
                 self._log(f"Failed to map {drive}", level="error")
+                self._set_status("Mapping failed.", "error")
                 messagebox.showerror("Error", "Mapping failed.")
 
     def _unmap_selected(self):
@@ -54,9 +79,11 @@ class DriveManagerPage(Frame):
             success = drive.unmap()
             if success:
                 self._log(f"Unmapped {drive}")
+                self._set_status(f"Unmapped {drive.drive_letter}:", "success")
                 self._refresh_drive_list()
             else:
                 self._log(f"Failed to unmap {drive}", level="error")
+                self._set_status("Unmap failed.", "error")
                 messagebox.showerror("Error", f"Failed to unmap {drive_letter}:")
 
     def _reconnect_selected(self):
@@ -71,11 +98,22 @@ class DriveManagerPage(Frame):
             success = drive.reconnect(username=cred.get('user'), password=cred.get('password'))
             if success:
                 self._log(f"Reconnected {drive}")
+                self._set_status(f"Reconnected {drive.drive_letter}:", "success")
                 messagebox.showinfo("Success", f"Reconnected {drive}")
                 self._refresh_drive_list()
             else:
                 self._log(f"Reconnect failed for {drive}", level="error")
+                self._set_status("Reconnect failed.", "error")
                 messagebox.showerror("Error", "Reconnect failed.")
+
+    def _set_status(self, msg, state="neutral"):
+        self.status.set(msg)
+        color = {
+            "success": "green",
+            "error": "red",
+            "neutral": "gray"
+        }.get(state, "gray")
+        self.status_label.config(fg=color)
 
     def _log(self, msg, level="info"):
         self.controller.logger.__getattribute__(level)(msg)
