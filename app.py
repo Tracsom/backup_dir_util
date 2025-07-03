@@ -1,10 +1,10 @@
-from src.gui.main_window import MainWindow
+from src.gui.app_controller import AppController
 import sys
 
 def main():
     try:
-        app = MainWindow()
-        app.run()
+        app = AppController()
+        app.mainloop()
     except Exception as e:
         print(f"[ERROR] Application failed to launch: {e}", file=sys.stderr)
 
