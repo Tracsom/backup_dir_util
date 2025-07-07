@@ -100,19 +100,42 @@ class NetworkDrive:
     def list_mapped():
         """
         Returns a list of currently mapped drives.
-        Format [ {'drive': 'Z:', 'remote':'\\\\NAS\\Backups'}, ... ]
+        Format: 
+            [
+                {'drive': 'Z:', 'remote':'\\\\NAS\\Backups', 'status':'OK'}, 
+                ... 
+            ]
+        Filters out IPC and printer connections (no drive letter).
         """
+        logger = setup_logger("backup_app")
         try:
-            result = subprocess.run(["net","use"], capture_output=True, text=True, timeout=5)
+            result = subprocess.run(["net", "use"], capture_output=True, text=True, timeout=5)
             lines = result.stdout.strip().splitlines()
             mappings = []
+            seen = set()
             for line in lines:
-                if re.match(r"^OK\s+", line):
+                # Match both OK and Disconnected entries
+                if re.match(r"^(OK|Disconnected|DISCONNECTED)\s+", line):
                     parts = re.split(r"\s{2,}", line.strip())
                     if len(parts) >= 3:
-                        drive = parts[1]
-                        remote = parts[2]
-                        mappings.append({'drive':drive, 'remote':remote})
+                        status = parts[0].strip()
+                        drive = parts[1].strip().upper()
+                        remote = parts[2].strip()
+                        # Filter out entries without drive letters (e.g., IPC$, printers)
+                        if not re.fullmatch(r"[A-Z]:", drive):
+                            logger.debug(f"Skipping non-drive mapping: {line}")
+                            continue
+                        if drive in seen:
+                            logger.warning(f"Duplicate drive entry found: {drive}")
+                            continue
+                        seen.add(drive)
+                        mappings.append({
+                            'drive': drive,
+                            'remote': remote,
+                            'status': status
+                        })
+                    else:
+                        logger.debug(f"Skipping malfornmed net use line: {line}")
             return mappings
         except Exception as e:
             logger = setup_logger("backup_app")
