@@ -1,16 +1,19 @@
-from tkinter import Tk, Menu, Frame
-from src.utils.logger import setup_logger
-from src.gui.landing_page import LandingPage
 from src.gui.backup_manager_page import BackupManagerPage
 from src.gui.drive_manager_page import DriveManagerPage
-import os
+from src.gui.landing_page import LandingPage
+from src.utils.logger import setup_logger
+from tkinter import Tk, Menu, Frame
 import sys
+import os
 
 class AppController(Tk):
     def __init__(self):
         super().__init__()
         self.title("Backup Utility Suite")
         self.logger = setup_logger("backup_app")
+        self.geometry("700x550")
+        self.resizable(False, False)
+        self.logger = setup_logger("backup_app", log_callback=self.gui_log_callback)
         # Set Icon from executable directory if present
         exe_dir = os.path.dirname(sys.executable if getattr(sys, 'frozen', False) else __file__)
         icon_path = os.path.join(exe_dir, "icon.ico")
@@ -51,8 +54,11 @@ class AppController(Tk):
         self.config(menu=menubar)
 
     def show_frame(self, page_name):
-        frame = self.pages[page_name]
-        frame.tkraise()
+        if page_name in self.pages:
+            frame = self.pages[page_name]
+            frame.tkraise()
+        else:
+            self.logger.warning(f"Unknown page: {page_name}")
 
     def gui_log_callback(self, msg):
         """Override this if pages implement their own log displays."""

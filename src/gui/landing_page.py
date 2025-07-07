@@ -25,5 +25,5 @@ class LandingPage(Frame):
             self, 
             text="Exit Application", 
             width=20, 
-            command=lambda:self.controller.quit
+            command=self.controller.quit
         ).pack(pady=40)

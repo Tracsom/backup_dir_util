@@ -1,13 +1,15 @@
 from src.utils.backup_job import BackupJob
 from src.utils.logger import setup_logger
+from tkinter.ttk import Progressbar
+from os.path import expanduser
 from tkinter import (
-    Frame, Label, Entry, Button, Checkbutton, Text, Scrollbar, LabelFrame,
+    Frame, Label, Entry, 
+    Button, Checkbutton, 
+    Text, Scrollbar, LabelFrame,
     BooleanVar, StringVar,
     filedialog,
     END, DISABLED, NORMAL
 )
-from tkinter.ttk import Progressbar
-from os.path import expanduser
 
 class BackupManagerPage(Frame):
     def __init__(self, parent, controller):
@@ -66,7 +68,8 @@ class BackupManagerPage(Frame):
         scroll.pack(side="right", fill="y")
         self.log_text.config(yscrollcommand=scroll.set)
 
-    def _bind_validation_events(self, widget):
+    def _bind_validation_events(self, widget): 
+        # Bind validation events to all children of the specified widget
         widget.bind_all("<FocusOut>", self._validate_paths)
         widget.bind_all("<KeyRelease>", self._validate_paths)
 

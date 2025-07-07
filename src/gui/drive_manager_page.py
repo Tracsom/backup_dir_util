@@ -52,7 +52,7 @@ class DriveManagerPage(Frame):
         self.drive_list.delete(0, END)
         drives = NetworkDrive.list_mapped()
         for d in drives:
-            entry = f"{d['drive']} -> {d['remote']} [{d['status']}]"
+            entry = f"{d['drive']} -> {d['remote']} -> {d['status']}"
             self.drive_list.insert(END, entry)
             index = self.drive_list.size() - 1
             # Set color based on status
@@ -102,20 +102,23 @@ class DriveManagerPage(Frame):
         if not selected:
             return
         entry = self.drive_list.get(selected[0])
-        drive_letter, unc = [x.strip().strip(":") for x in entry.split("->")]
-        drive = NetworkDrive(drive_letter=drive_letter, unc_path=unc)
-        cred = NasCredentialPrompt(self).result
-        if cred:
-            success = drive.reconnect(username=cred.get('user'), password=cred.get('password'))
-            if success:
-                self._log(f"Reconnected {drive}")
-                self._set_status(f"Reconnected {drive.drive_letter}:", "success")
-                messagebox.showinfo("Success", f"Reconnected {drive}")
-                self._refresh_drive_list()
-            else:
-                self._log(f"Reconnect failed for {drive}", level="error")
-                self._set_status("Reconnect failed.", "error")
-                messagebox.showerror("Error", "Reconnect failed.")
+        parts = entry.split("->")
+        if len(parts) >= 2:
+            drive_letter = parts[0].strip().strip(":")
+            unc = parts[1].strip()
+            drive = NetworkDrive(drive_letter=drive_letter, unc_path=unc)
+            cred = NasCredentialPrompt(self).result
+            if cred:
+                success = drive.reconnect(username=cred.get('user'), password=cred.get('password'))
+                if success:
+                    self._log(f"Reconnected {drive}")
+                    self._set_status(f"Reconnected {drive.drive_letter}:", "success")
+                    messagebox.showinfo("Success", f"Reconnected {drive}")
+                    self._refresh_drive_list()
+                else:
+                    self._log(f"Reconnect failed for {drive}", level="error")
+                    self._set_status("Reconnect failed.", "error")
+                    messagebox.showerror("Error", "Reconnect failed.")
 
     def _set_status(self, msg, state="neutral"):
         self.status.set(msg)
