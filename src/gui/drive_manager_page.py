@@ -1,5 +1,6 @@
 from src.gui.nas_credential_prompt import NasCredentialPrompt
 from src.utils.network_drive import NetworkDrive
+from src.utils.logger import set_logger
 from tkinter import (
     Frame, LabelFrame, Label, Listbox, Button, Scrollbar, StringVar, Text,
     END, SINGLE, DISABLED, NORMAL,
@@ -11,6 +12,7 @@ class DriveManagerPage(Frame):
         super().__init__(parent)
         self.controller = controller
         self.status = StringVar(value="Ready")
+        self.logger = set_logger("backup_app", self._log)
         Label(
             self, 
             text="Drive Manager", 
@@ -50,7 +52,16 @@ class DriveManagerPage(Frame):
         self.drive_list.delete(0, END)
         drives = NetworkDrive.list_mapped()
         for d in drives:
-            self.drive_list.insert(END, f"{d['drive']} -> {d['remote']}")
+            entry = f"{d['drive']} -> {d['remote']} [{d['status']}]"
+            self.drive_list.insert(END, entry)
+            index = self.drive_list.size() - 1
+            # Set color based on status
+            if d['status'] == 'OK':
+                self.drive_list.itemconfig(index, {'fg': 'green'})
+            elif d['status'] == 'DISCONNECTED' or d['status'] == 'Disconnected':
+                self.drive_list.itemconfig(index, {'fg': 'gray'})
+            else:
+                self.drive_list.itemconfig(index, {'fg': 'red'})
         self._set_status(f"{len(drives)} drive(s) mapped.", "neutral")
     
     def _map_new(self):
@@ -59,12 +70,12 @@ class DriveManagerPage(Frame):
             drive = NetworkDrive(drive_letter=cred['drive'], unc_path=cred['unc'])
             success = drive.map(username=cred.get('user'), password=cred.get('password'))
             if success:
-                self._log(f"Mapped {drive}.")
+                self.logger.info(f"Mapped {drive}.")
                 self._set_status(f"Mapped {drive.drive_letter}: -> {drive.unc_path}", "success")
                 messagebox.showinfo("Success", f"Mapped to {drive.drive_letter}:")
                 self._refresh_drive_list()
             else:
-                self._log(f"Failed to map {drive}", level="error")
+                self.logger.error(f"Failed to map {drive}")
                 self._set_status("Mapping failed.", "error")
                 messagebox.showerror("Error", "Mapping failed.")
 
@@ -78,11 +89,11 @@ class DriveManagerPage(Frame):
             drive = NetworkDrive(drive_letter=drive_letter)
             success = drive.unmap()
             if success:
-                self._log(f"Unmapped {drive}")
+                self.logger.info(f"Unmapped {drive}")
                 self._set_status(f"Unmapped {drive.drive_letter}:", "success")
                 self._refresh_drive_list()
             else:
-                self._log(f"Failed to unmap {drive}", level="error")
+                self.logger.error(f"Failed to unmap {drive}")
                 self._set_status("Unmap failed.", "error")
                 messagebox.showerror("Error", f"Failed to unmap {drive_letter}:")
 
@@ -116,4 +127,7 @@ class DriveManagerPage(Frame):
         self.status_label.config(fg=color)
 
     def _log(self, msg, level="info"):
-        self.controller.logger.__getattribute__(level)(msg)
+        self.log_text.config(state=NORMAL)
+        self.log_text.insert(END, f"{msg}\n")
+        self.log_text.see(END)
+        self.log_text.config(state=DISABLED)
