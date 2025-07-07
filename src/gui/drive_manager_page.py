@@ -34,9 +34,9 @@ class DriveManagerPage(Frame):
         action_frame.pack(fill="x", padx=10, pady=5)
         btn_row = Frame(action_frame)
         btn_row.pack()
-        Button(btn_row, text="Map New Drive", width=18, command=self._map_new).pack(padx=5)
-        Button(btn_row, text="Unmap Selected", width=18, command=self._unmap_selected).pack(padx=5)
-        Button(btn_row, text="Reconnect Selected", width=18, command=self._reconnect_selected).pack(padx=5)
+        Button(btn_row, text="Map New Drive", width=18, command=self._map_new).pack(side="left", padx=5)
+        Button(btn_row, text="Unmap Selected", width=18, command=self._unmap_selected).pack(side="left", padx=5)
+        Button(btn_row, text="Reconnect Selected", width=18, command=self._reconnect_selected).pack(side="left", padx=5)
         # --- Log Panel ---
         log_frame = LabelFrame(self, text="Drive Manager Log", padx=10, pady=5)
         log_frame.pack(fill="both", expand=True, padx=10, pady=5)

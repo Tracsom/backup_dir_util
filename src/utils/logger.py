@@ -1,11 +1,17 @@
 import os
+import sys
 import socket
 import logging
 import tempfile
 from datetime import datetime
 from src.utils.path_utils import get_runtime_path
 
-LOG_DIR = get_runtime_path('logs') # Default log directory
+def get_executable_dir():
+    if getattr(sys, 'frozen', False):
+        return os.path.dirname(sys.executable)
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+
+LOG_DIR = os.path.join(get_executable_dir(), 'logs') # Default log directory
 HOSTNAME = socket.gethostname() # Get the system hostname
 # Try logs folder next to app; fallback to temp directory if it fails
 try:

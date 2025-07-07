@@ -3,14 +3,22 @@ from src.utils.logger import setup_logger
 from src.gui.landing_page import LandingPage
 from src.gui.backup_manager_page import BackupManagerPage
 from src.gui.drive_manager_page import DriveManagerPage
+import os
+import sys
 
 class AppController(Tk):
     def __init__(self):
         super().__init__()
         self.title("Backup Utility Suite")
-        #self.geometry("700x550")
-        #self.resizable(False, False)
-        self.logger = setup_logger("backup_app", log_callback=self.gui_log_callback)
+        self.logger = setup_logger("backup_app")
+        # Set Icon from executable directory if present
+        exe_dir = os.path.dirname(sys.executable if getattr(sys, 'frozen', False) else __file__)
+        icon_path = os.path.join(exe_dir, "icon.ico")
+        if os.path.exists(icon_path):
+            try:
+                self.iconbitmap(icon_path)
+            except Exception as e:
+                self.logger.warning(f"Could not set icon: {e}")
         # Page container
         self.container = Frame(self)
         self.container.pack(fill="both", expand=True, padx=10, pady=10)
