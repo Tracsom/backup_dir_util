@@ -1,4 +1,4 @@
-from tkinter import Label, Entry
+from tkinter import Label, Entry, messagebox
 from tkinter.simpledialog import Dialog
 
 class NasCredentialPrompt(Dialog):
@@ -20,15 +20,20 @@ class NasCredentialPrompt(Dialog):
         self.password.grid(row=3, column=1, padx=5, pady=2)
         # Default values
         self.drive.insert(0, "B")
+        # Bindings
+        self.password.bind("<Return>", lambda e: self.ok())
         return self.unc # Initial focus
 
     def validate(self):
         unc = self.unc.get().strip()
         drive = self.drive.get().strip().upper()
-        return (
-            unc.startswith("\\\\") and
-            len(drive) == 1 and drive.isalpha()
-        )
+        if not unc.startswith("\\\\"):
+            messagebox.showerror("Invalid UNC", "UNC path must begin with \\\\")
+            return False
+        if not (len(drive) == 1 and drive.isalpha()):
+            messagebox.showerror("Invalid Drive Letter", "Drive must be a single letter (A-Z)")
+            return False
+        return True
     
     def apply(self):
         self.result = {
