@@ -1,6 +1,6 @@
 from src.gui.nas_credential_prompt import NasCredentialPrompt
 from src.utils.network_drive import NetworkDrive
-from src.utils.logger import set_logger
+from src.utils.logger import setup_logger
 from tkinter import (
     Frame, LabelFrame, Label, Listbox, Button, Scrollbar, StringVar, Text,
     END, SINGLE, DISABLED, NORMAL,
@@ -12,7 +12,7 @@ class DriveManagerPage(Frame):
         super().__init__(parent)
         self.controller = controller
         self.status = StringVar(value="Ready")
-        self.logger = set_logger("backup_app", self._log)
+        self.logger = setup_logger("backup_app", self._log)
         Label(
             self, 
             text="Drive Manager", 
