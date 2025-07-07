@@ -25,7 +25,7 @@ def setup_logger(name:str, log_callback=None, log_dir=None):
         gui_handler = LogCallbackHandler(log_callback)
         gui_handler.setLevel(logging.INFO)
         gui_handler.setFormatter(logging.Formatter('%(message)s'))
-        logger.addhandler(gui_handler)
+        logger.addHandler(gui_handler)
 
     return logger
 
