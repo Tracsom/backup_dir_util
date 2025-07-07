@@ -4,7 +4,7 @@ from src.utils.logger import setup_logger
 
 # Network Drive class
 class NetworkDrive:
-    def __init__(self, drive_letter, unc_path):
+    def __init__(self, drive_letter, unc_path=None):
         self.drive_letter = drive_letter
         self.unc_path = unc_path 
         self.logger = setup_logger('backup_app')
@@ -107,11 +107,12 @@ class NetworkDrive:
             lines = result.stdout.strip().splitlines()
             mappings = []
             for line in lines:
-                if ":" in line and "\\" in line:
-                    parts = line.split()
-                    drive = parts[0]
-                    remote = parts[-2] if parts[-1] == 'OK' else parts[-1]
-                    mappings.append({'drive': drive, 'remote': remote})
+                if re.match(r"^OK\s+", line):
+                    parts = re.split(r"\s{2,}", line.strip())
+                    if len(parts) >= 3:
+                        drive = parts[1]
+                        remote = parts[2]
+                        mappings.append({'drive':drive, 'remote':remote})
             return mappings
         except Exception as e:
             logger = setup_logger("backup_app")

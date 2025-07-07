@@ -91,7 +91,7 @@ class DriveManagerPage(Frame):
         if not selected:
             return
         entry = self.drive_list.get(selected[0])
-        drive_letter, unc = [x.strip() for x in entry.split("->")]
+        drive_letter, unc = [x.strip().strip(":") for x in entry.split("->")]
         drive = NetworkDrive(drive_letter=drive_letter, unc_path=unc)
         cred = NasCredentialPrompt(self).result
         if cred:
