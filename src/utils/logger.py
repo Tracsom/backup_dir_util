@@ -1,25 +1,28 @@
 import os
+import socket
 import logging
 import tempfile
 from datetime import datetime
 from src.utils.path_utils import get_runtime_path
 
 LOG_DIR = get_runtime_path('logs') # Default log directory
+HOSTNAME = socket.gethostname() # Get the system hostname
+# Try logs folder next to app; fallback to temp directory if it fails
+try:
+    LOG_DIR = get_runtime_path("logs")
+    os.makedirs(LOG_DIR, exist_ok=True)
+except Exception:
+    LOG_DIR = os.path.join(tempfile.gettempdir(), "backup_logs")
+    os.makedirs(LOG_DIR, exist_ok=True)
 
 def setup_logger(name:str, log_callback=None, log_dir=None):
     log_dir = log_dir or LOG_DIR
-    try:
-        os.makedirs(log_dir, exist_ok=True)
-    except Exception:
-        log_dir = os.path.join(tempfile.gettempdir(), "backup_logs")
-        os.makedirs(log_dir, exist_ok=True)
-    
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
 
     if not logger.hasHandlers():
         timestamp = datetime.now().strftime("%Y%m%d")
-        file_path = os.path.join(log_dir, f"backup_{timestamp}.log")
+        file_path = os.path.join(log_dir, f"{HOSTNAME}_backup_{timestamp}.log")
         file_handler = logging.FileHandler(file_path, encoding="utf-8")
         file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(logging.Formatter(
