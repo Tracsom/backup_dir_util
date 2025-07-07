@@ -1,4 +1,5 @@
 from src.utils.backup_job import BackupJob
+from src.utils.logger import setup_logger
 from tkinter import (
     Frame, Label, Entry, Button, Checkbutton, Text, Scrollbar, LabelFrame,
     BooleanVar, StringVar,
@@ -12,6 +13,7 @@ class BackupManagerPage(Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
+        self.logger = setup_logger("backup_app", self._log)
         # UI Variables
         self.src_path = StringVar()
         self.dst_path = StringVar()
@@ -109,16 +111,15 @@ class BackupManagerPage(Frame):
                 log_callback=self._log
             )
             job.run(progress_callback=update_progress)
-            self._log("Backup complete.")
+            self.logger.info("Backup complete.")
             self.status_var.set("Backup complete.")
             self.progress['value'] = 100
         except Exception as e:
-            self._log(f"Backup failed: {e}", level="error")
+            self.logger.error(f"Backup failed: {e}")
             self.status_var.set("Backup failed.")
             self.progress['value'] = 0
 
     def _log(self, msg, level="info"):
-        self.controller.logger.__getattribute__(level)(msg)
         self.log_text.config(state=NORMAL)
         self.log_text.insert(END, msg+"\n")
         self.log_text.see(END)
