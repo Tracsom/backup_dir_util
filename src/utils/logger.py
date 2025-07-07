@@ -1,12 +1,18 @@
-import logging
 import os
+import logging
+import tempfile
 from datetime import datetime
+from src.utils.path_utils import get_runtime_path
 
-LOG_DIR = os.path.join(os.getcwd(), "logs")
+LOG_DIR = get_runtime_path('logs') # Default log directory
 
 def setup_logger(name:str, log_callback=None, log_dir=None):
     log_dir = log_dir or LOG_DIR
-    os.makedirs(log_dir, exist_ok=True)
+    try:
+        os.makedirs(log_dir, exist_ok=True)
+    except Exception:
+        log_dir = os.path.join(tempfile.gettempdir(), "backup_logs")
+        os.makedirs(log_dir, exist_ok=True)
     
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
