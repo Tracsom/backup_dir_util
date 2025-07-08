@@ -104,9 +104,8 @@ class DriveManagerPage(Frame):
         entry = self.drive_list.get(selected[0])
         parts = entry.split("->")
         if len(parts) >= 2:
-            drive_letter = parts[0].strip().strip(":")
-            unc = parts[1].strip()
-            drive = NetworkDrive(drive_letter=drive_letter, unc_path=unc)
+            mapping = parts[:2]
+            drive = NetworkDrive.from_mapping(mapping)
             cred = NasCredentialPrompt(self).result
             if cred:
                 success = drive.reconnect(username=cred.get('user'), password=cred.get('password'))

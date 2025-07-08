@@ -1,5 +1,5 @@
 # Bytecode and cache
-__pycashe__/
+__pycache__/
 *.py[cod]
 *.pyo
 # OS-Specific

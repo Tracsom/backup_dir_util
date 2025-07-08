@@ -1,7 +1,7 @@
 from src.gui.backup_manager_page import BackupManagerPage
 from src.gui.drive_manager_page import DriveManagerPage
 from src.gui.landing_page import LandingPage
-from src.utils.logger import setup_logger
+from src.utils.logger import setup_logger, clean_old_logs, get_default_log_dir
 from tkinter import Tk, Menu, Frame
 import sys
 import os
@@ -10,7 +10,8 @@ class AppController(Tk):
     def __init__(self):
         super().__init__()
         self.title("Backup Utility Suite")
-        self.logger = setup_logger("backup_app")
+        clean_old_logs(get_default_log_dir()) # Clean old logs on startup
+        self.logger = setup_logger("backup_app") # Initialize logger
         self.geometry("700x550")
         self.resizable(False, False)
         self.logger = setup_logger("backup_app", log_callback=self.gui_log_callback)

@@ -50,16 +50,24 @@ class BackupJob:
 
     # --- Public method ---
     def run(self, progress_callback=None):
-        if self.compress:
-            self._zip_backup(progress_callback)
-        else:
-            self._full_backup(progress_callback)
+        try:
+            if self.compress:
+                self._zip_backup(progress_callback)
+            else:
+                self._full_backup(progress_callback)
+            return True
+        except Exception as e:
+            self.log(f"Backup failed: {e}", level="error")
+            raise
 
     # --- Internal methods ---
     def _zip_backup(self, progress_callback=None):
         folder_name = os.path.basename(os.path.normpath(self.src))
         zip_name = f"{folder_name}_{self.timestamp}.zip"
         zip_path = os.path.join(self.dest, zip_name)
+        if os.path.exists(zip_path):
+            self.log(f"ZIP archive already exists: {zip_path}. Skipping backup.")
+            return
         total_files = sum(len(files) for _, _, files in os.walk(self.src))
         processed = 0
         self.log(f"Creating ZIP archive: {zip_path}")
@@ -77,7 +85,7 @@ class BackupJob:
             self.log("ZIP archive completed.")
         except Exception as e:
             self.log(f"ZIP backup failed: {e}", level="error")
-            raise
+            raise RuntimeError(f"Backup failed: {e}")
 
     def _full_backup(self, progress_callback=None):
         folder_name = os.path.basename(os.path.normpath(self.src))
@@ -96,7 +104,7 @@ class BackupJob:
                 shutil.move(target_path, archived_path)
             except Exception as e:
                 self.log(f"Failed to archive existing backup: {e}", level="error")
-                raise
+                raise RuntimeError(f"Backup failed: {e}")
         # Copy new
         self.log(f"Copying new backup to: {target_path}")
         try:
@@ -117,6 +125,7 @@ class BackupJob:
             self.log("Copy complete.")
         except Exception as e:
             self.log(f"Backup failed during copy: {e}", level="error")
+            raise RuntimeError(f"Backup failed: {e}")
     
     def _build_logger_proxy(self, log_callback):
         def log(msg, level="info"):

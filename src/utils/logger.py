@@ -1,21 +1,30 @@
 import os
 import sys
+import glob
 import socket
 import logging
 import tempfile
 from datetime import datetime
-from src.utils.path_utils import get_runtime_path
 
-def get_executable_dir():
+def clean_old_logs(directory, keep_last=90):
+    """Clean old log files, keeping most recent `keep_last`."""
+    files = sorted(glob.glob(os.path.join(directory, "*_backup_*.log")), reverse=True)
+    for f in files[keep_last:]:
+        try:
+            os.remove(f)
+        except Exception as e:
+            pass
+
+def get_default_log_dir():
     if getattr(sys, 'frozen', False):
         return os.path.dirname(sys.executable)
     return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
-LOG_DIR = os.path.join(get_executable_dir(), 'logs') # Default log directory
+LOG_DIR = os.path.join(get_default_log_dir(), 'logs') # Default log directory
 HOSTNAME = socket.gethostname() # Get the system hostname
 # Try logs folder next to app; fallback to temp directory if it fails
 try:
-    LOG_DIR = get_runtime_path("logs")
+    LOG_DIR = get_default_log_dir("logs")
     os.makedirs(LOG_DIR, exist_ok=True)
 except Exception:
     LOG_DIR = os.path.join(tempfile.gettempdir(), "backup_logs")
@@ -25,6 +34,7 @@ def setup_logger(name:str, log_callback=None, log_dir=None):
     log_dir = log_dir or LOG_DIR
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
+    logger.propagate = False # Prevent propagation to root logger
 
     if not logger.hasHandlers():
         timestamp = datetime.now().strftime("%Y%m%d")

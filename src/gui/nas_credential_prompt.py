@@ -18,6 +18,7 @@ class NasCredentialPrompt(Dialog):
         self.drive.grid(row=1, column=1, padx=5, pady=2)
         self.user.grid(row=2, column=1, padx=5, pady=2)
         self.password.grid(row=3, column=1, padx=5, pady=2)
+        self.unc.focus_set()
         # Default values
         self.drive.insert(0, "B")
         # Bindings
@@ -40,5 +41,5 @@ class NasCredentialPrompt(Dialog):
             "unc": self.unc.get().strip(),
             "drive": self.drive.get().strip().upper(),
             "user": self.user.get().strip(),
-            "password": self.password.get()
+            "password": self.password.get().strip()
         }

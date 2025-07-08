@@ -4,6 +4,7 @@ from src.utils.logger import setup_logger
 
 # Network Drive class
 class NetworkDrive:
+    NET_TIMEOUT = 10 # Seconds
     def __init__(self, drive_letter, unc_path=None):
         self.drive_letter = drive_letter
         self.unc_path = unc_path 
@@ -56,7 +57,7 @@ class NetworkDrive:
         cmd.append("/persistent:no")
         self.logger.info(f"Mapping {self.drive_letter}: to {self.unc_path}")
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=NetworkDrive.NET_TIMEOUT)
             if result.returncode==0:
                 self.logger.info(f"Mapped successfully.")
                 return True
@@ -71,7 +72,7 @@ class NetworkDrive:
         cmd = ["net", "use", f"{self.drive_letter}:", "/delete", "/y"]
         self.logger.info(f"Unmapping {self.drive_letter}:")
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=5)
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=NetworkDrive.NET_TIMEOUT)
             if result.returncode == 0:
                 self.logger.info(f"Unmapped successfully.")
                 return True
@@ -96,6 +97,10 @@ class NetworkDrive:
     def is_network_path(path):
         return path.replace("/", "\\").startswith("\\\\")
     
+    @classmethod
+    def from_mapping(cls, mapping:dict):
+        return cls(drive_letter=mapping['drive'][0], unc_path=mapping['remote'])
+    
     @staticmethod
     def list_mapped():
         """
@@ -109,7 +114,7 @@ class NetworkDrive:
         """
         logger = setup_logger("backup_app")
         try:
-            result = subprocess.run(["net", "use"], capture_output=True, text=True, timeout=5)
+            result = subprocess.run(["net", "use"], capture_output=True, text=True, timeout=NetworkDrive.NET_TIMEOUT)
             lines = result.stdout.strip().splitlines()
             mappings = []
             seen = set()
@@ -135,7 +140,7 @@ class NetworkDrive:
                             'status': status
                         })
                     else:
-                        logger.debug(f"Skipping malfornmed net use line: {line}")
+                        logger.debug(f"Skipping malformed net use line: {line}")
             return mappings
         except Exception as e:
             logger = setup_logger("backup_app")
