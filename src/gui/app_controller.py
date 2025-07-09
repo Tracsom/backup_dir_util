@@ -11,9 +11,8 @@ class AppController(Tk):
         super().__init__()
         self.title("Backup Utility Suite")
         clean_old_logs(get_default_log_dir()) # Clean old logs on startup
-        self.logger = setup_logger("backup_app") # Initialize logger
-        self.geometry("700x550")
-        self.resizable(False, False)
+        # self.geometry("700x550")
+        # self.resizable(False, False)
         self.logger = setup_logger("backup_app", log_callback=self.gui_log_callback)
         # Set Icon from executable directory if present
         exe_dir = os.path.dirname(sys.executable if getattr(sys, 'frozen', False) else __file__)
@@ -63,4 +62,8 @@ class AppController(Tk):
 
     def gui_log_callback(self, msg):
         """Override this if pages implement their own log displays."""
-        print(msg)
+        current_page = self.pages.get(self.tk.call('raise', self.container.winfo_children()[0]))
+        if hasattr(current_page, "_log"):
+            current_page._log(msg)
+        else:
+            print(msg)

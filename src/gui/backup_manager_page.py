@@ -15,7 +15,8 @@ class BackupManagerPage(Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
-        self.logger = setup_logger("backup_app", self._log)
+        #self.logger = setup_logger("backup_app", self._log)
+        self.logger = controller.logger
         # UI Variables
         self.src_path = StringVar()
         self.dst_path = StringVar()

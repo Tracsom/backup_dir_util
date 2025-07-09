@@ -12,7 +12,8 @@ class DriveManagerPage(Frame):
         super().__init__(parent)
         self.controller = controller
         self.status = StringVar(value="Ready")
-        self.logger = setup_logger("backup_app", self._log)
+        #self.logger = setup_logger("backup_app", self._log)
+        self.logger = controller.logger
         Label(
             self, 
             text="Drive Manager", 

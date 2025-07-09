@@ -12,23 +12,22 @@ def clean_old_logs(directory, keep_last=90):
     for f in files[keep_last:]:
         try:
             os.remove(f)
-        except Exception as e:
+        except Exception:
             pass
 
 def get_default_log_dir():
     if getattr(sys, 'frozen', False):
-        return os.path.dirname(sys.executable)
-    return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+        # Running as bundled executable
+        base_dir =  os.path.dirname(sys.executable)
+    else:
+        # Running as script
+        base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    log_dir = os.path.join(base_dir, "logs")
+    os.makedirs(log_dir, exist_ok=True)
+    return log_dir
 
-LOG_DIR = os.path.join(get_default_log_dir(), 'logs') # Default log directory
+LOG_DIR = get_default_log_dir() # Default log directory
 HOSTNAME = socket.gethostname() # Get the system hostname
-# Try logs folder next to app; fallback to temp directory if it fails
-try:
-    LOG_DIR = get_default_log_dir("logs")
-    os.makedirs(LOG_DIR, exist_ok=True)
-except Exception:
-    LOG_DIR = os.path.join(tempfile.gettempdir(), "backup_logs")
-    os.makedirs(LOG_DIR, exist_ok=True)
 
 def setup_logger(name:str, log_callback=None, log_dir=None):
     log_dir = log_dir or LOG_DIR
@@ -36,7 +35,12 @@ def setup_logger(name:str, log_callback=None, log_dir=None):
     logger.setLevel(logging.DEBUG)
     logger.propagate = False # Prevent propagation to root logger
 
-    if not logger.hasHandlers():
+    # Add file handler only if not present
+    file_handler_exists = any(
+        isinstance(h, logging.FileHandler) and h.baseFilename.startswith(log_dir)
+        for h in logger.handlers
+    )
+    if not file_handler_exists:
         timestamp = datetime.now().strftime("%Y%m%d")
         file_path = os.path.join(log_dir, f"{HOSTNAME}_backup_{timestamp}.log")
         file_handler = logging.FileHandler(file_path, encoding="utf-8")
@@ -45,8 +49,11 @@ def setup_logger(name:str, log_callback=None, log_dir=None):
             '%(asctime)s - %(levelname)s - %(message)s', "%Y-%m-%d %H:%M:%S"
         ))
         logger.addHandler(file_handler)
-    
-    if log_callback:
+    # Add GUI handler only if not present for this callback
+    if log_callback and not any(
+        isinstance(h, LogCallbackHandler) and getattr(h, "callback", None) == log_callback
+        for h in logger.handlers
+    ):
         gui_handler = LogCallbackHandler(log_callback)
         gui_handler.setLevel(logging.INFO)
         gui_handler.setFormatter(logging.Formatter('%(message)s'))
